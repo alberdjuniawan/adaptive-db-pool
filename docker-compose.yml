@@ -1,0 +1,100 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: adaptive-db-pool-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-adaptive}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adaptive}
+      POSTGRES_DB: ${POSTGRES_DB:-adaptive}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-adaptive} -d ${POSTGRES_DB:-adaptive}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: adaptive-db-pool-backend
+    environment:
+      PORT: 8080
+      APP_ENV: development
+      DATABASE_URL: postgres://${POSTGRES_USER:-adaptive}:${POSTGRES_PASSWORD:-adaptive}@postgres:5432/${POSTGRES_DB:-adaptive}?sslmode=disable
+      DB_MAX_CONNS: ${DB_MAX_CONNS:-50}
+      DB_MIN_CONNS: ${DB_MIN_CONNS:-2}
+      ADMISSION_STRATEGY: ${ADMISSION_STRATEGY:-static}
+      ADMISSION_LIMIT: ${ADMISSION_LIMIT:-20}
+      PROMETHEUS_ENABLED: ${PROMETHEUS_ENABLED:-true}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.4.1
+    container_name: adaptive-db-pool-prometheus
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana:11.6.3
+    container_name: adaptive-db-pool-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+  # Closed-loop adaptive controller (Phase 9). Gated behind the
+  # "controller" profile so baseline experiments run a pure static stack.
+  # Enable with: docker compose --profile controller up
+  ml-controller:
+    build:
+      context: ./controller
+    container_name: adaptive-db-pool-controller
+    profiles:
+      - controller
+    environment:
+      # Values default to configs/controller.yaml; set a variable here (or
+      # in .env) to override the YAML for a specific experiment.
+      BACKEND_URL: http://backend:8080
+      PROMETHEUS_URL: http://prometheus:9090
+      CONTROLLER_INTERVAL: ${CONTROLLER_INTERVAL:-}
+      ADMISSION_MIN_LIMIT: ${ADMISSION_MIN_LIMIT:-}
+      ADMISSION_MAX_LIMIT: ${ADMISSION_MAX_LIMIT:-}
+      ADMISSION_MAX_DELTA: ${ADMISSION_MAX_DELTA:-}
+      ADMISSION_COOLDOWN: ${ADMISSION_COOLDOWN:-}
+      HYSTERESIS_THRESHOLD: ${HYSTERESIS_THRESHOLD:-}
+      ADMISSION_FALLBACK_LIMIT: ${ADMISSION_FALLBACK_LIMIT:-}
+      FRESH_TIMEOUT: ${FRESH_TIMEOUT:-}
+      HEARTBEAT_SECONDS: ${HEARTBEAT_SECONDS:-}
+      MODEL_PATH: /models/predictor.joblib
+    volumes:
+      - ./ml/models:/models:ro
+    depends_on:
+      - backend
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
