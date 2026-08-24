@@ -1,0 +1,20 @@
+# Closed-loop controller configuration. Values mirror the safety
+# envelope configured on the backend so both layers agree on bounds.
+interval_seconds: 5
+
+min_limit: 4
+max_limit: 64
+max_delta: 4
+cooldown_seconds: 5
+hysteresis_threshold: 0.05
+fallback_limit: 20
+fresh_timeout_seconds: 60
+heartbeat_seconds: 15
+
+model_path: ../ml/models/predictor.joblib
+
+objective:
+  weight_latency: 1.0
+  weight_error: 3.0
+  weight_wait: 1.5
+  weight_resource: 0.05
