@@ -1,0 +1,246 @@
+{
+  "uid": "adp-overview",
+  "title": "Adaptive DB Pool / Overview",
+  "tags": [
+    "adaptive-db-pool"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "5s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Throughput",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(adaptive_db_pool_requests_total[1m]))",
+          "legendFormat": "rps"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "title": "P95 Latency",
+      "type": "stat",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(adaptive_db_pool_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "title": "Error Rate",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(adaptive_db_pool_request_errors_total[5m])) / sum(rate(adaptive_db_pool_requests_total[5m]))",
+          "legendFormat": "errors"
+        }
+      ],
+      "description": "Persen request yang gagal (status >= 400) dalam 5 menit terakhir.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "title": "Admission Active / Limit",
+      "type": "stat",
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "adaptive_db_pool_admission_active",
+          "legendFormat": "active"
+        },
+        {
+          "expr": "adaptive_db_pool_admission_limit",
+          "legendFormat": "limit"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "RPS by Query Class",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(adaptive_db_pool_request_duration_seconds_count[1m]))",
+          "legendFormat": "total"
+        },
+        {
+          "expr": "sum(rate(adaptive_db_pool_request_duration_seconds_count[1m])) by (query_class)",
+          "legendFormat": "{{query_class}}"
+        }
+      ],
+      "description": "Distribusi beban per kelas query (simple/medium/complex/aggregation).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "fillOpacity": 8,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 11,
+      "title": "Latency Percentiles (p50 / p95 / p99)",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(adaptive_db_pool_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(adaptive_db_pool_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(adaptive_db_pool_request_duration_seconds_bucket[1m])) by (le))",
+          "legendFormat": "p99"
+        }
+      ],
+      "description": "Ekor latensi adalah metrik utama riset (RQ2). P99 jauh di atas P95 = antrean admission.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "fillOpacity": 8,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 12,
+      "title": "Request Duration Heatmap",
+      "type": "heatmap",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 14,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(adaptive_db_pool_request_duration_seconds_bucket[$__interval])) by (le)",
+          "legendFormat": "{{le}}"
+        }
+      ],
+      "description": "Distribusi penuh latensi; pita gelap bergerak ke kanan = sistem melambat.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "format": "heatmap"
+    },
+    {
+      "id": 13,
+      "title": "Error Rate by Status Class",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 14,
+        "y": 12,
+        "w": 10,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(adaptive_db_pool_request_errors_total[1m])) by (status)",
+          "legendFormat": "{{status}}"
+        },
+        {
+          "expr": "100 * sum(rate(adaptive_db_pool_request_errors_total[1m])) / sum(rate(adaptive_db_pool_requests_total[1m]))",
+          "legendFormat": "% errors"
+        }
+      ],
+      "description": "Garis persen = error rate keseluruhan; seri lain = error per kelas status (4xx/5xx).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "fillOpacity": 8,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      }
+    }
+  ]
+}

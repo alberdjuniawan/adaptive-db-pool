@@ -1,0 +1,228 @@
+{
+  "uid": "adp-controller",
+  "title": "Adaptive DB Pool / Controller",
+  "tags": [
+    "adaptive-db-pool"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "5s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Decisions Total",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "sum(adaptive_db_pool_controller_decisions_total)",
+          "legendFormat": "decisions"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "title": "Limit Changes Total",
+      "type": "stat",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "sum(adaptive_db_pool_controller_limit_changes_total)",
+          "legendFormat": "changes"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "title": "Current Limit",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "adaptive_db_pool_admission_limit",
+          "legendFormat": "limit"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "title": "Oscillation (15m)",
+      "type": "stat",
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "changes(adaptive_db_pool_admission_limit[15m])",
+          "legendFormat": "flips"
+        }
+      ],
+      "description": "Berapa kali limit berubah dalam 15 menit. Tinggi + bolak-balik = tidak stabil.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 10,
+      "title": "Applied Limit",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "adaptive_db_pool_admission_limit",
+          "legendFormat": "applied limit"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineInterpolation": "stepAfter"
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 11,
+      "title": "Controller Decisions by Reason",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(adaptive_db_pool_controller_decisions_total[5m])) by (reason)",
+          "legendFormat": "{{reason}}"
+        }
+      ],
+      "description": "Alasan tiap keputusan: saturation/underutilization (heuristik), increase/decrease/cooldown (adaptif).",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": {
+            "fillOpacity": 8,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 20,
+      "title": "Control Quality: Admission Wait p95 vs Request p99",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(adaptive_db_pool_admission_wait_seconds_bucket[5m])) by (le))",
+          "legendFormat": "admission wait p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(adaptive_db_pool_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "request p99"
+        }
+      ],
+      "description": "Controller yang baik menjaga keduanya rendah bersamaan; trade-off keduanya adalah inti objective function J.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "fillOpacity": 8,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 21,
+      "title": "Prediction Effectiveness",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "avg_over_time(adaptive_db_pool_admission_limit[5m])",
+          "legendFormat": "avg limit (5m)"
+        },
+        {
+          "expr": "sum(rate(adaptive_db_pool_request_duration_seconds_count[1m]))",
+          "legendFormat": "throughput rps"
+        }
+      ],
+      "description": "Pasangan ini untuk RQ3: apakah perubahan limit diikuti perbaikan throughput tanpa penalti latensi.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "fillOpacity": 8,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      }
+    }
+  ]
+}
