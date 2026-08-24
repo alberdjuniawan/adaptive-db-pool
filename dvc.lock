@@ -1,0 +1,54 @@
+schema: '2.0'
+stages:
+  prepare_data:
+    cmd: python ml/scripts/prepare_data.py
+    deps:
+    - path: ml/src/data/load.py
+      hash: md5
+      md5: 09a6e4bc50fce1c09a298fab5731ba63
+      size: 4597
+    - path: ml/src/data/validate.py
+      hash: md5
+      md5: cbb850f4b28b70caa786615737902e90
+      size: 1411
+    outs:
+    - path: data/processed/dataset.csv
+      hash: md5
+      md5: dce49e923e37fcd5d3c7d1c3fa21d910
+      size: 14839
+    - path: data/processed/validation_report.json
+      hash: md5
+      md5: 793c8bc32db982a03623e45738e1602f
+      size: 404
+  train:
+    cmd: python ml/scripts/train.py --dataset data/processed/dataset.csv
+    deps:
+    - path: data/processed/dataset.csv
+      hash: md5
+      md5: dce49e923e37fcd5d3c7d1c3fa21d910
+      size: 14839
+    - path: ml/scripts/train.py
+      hash: md5
+      md5: 0b53261a93abd3251ff80305b058057f
+      size: 3969
+    - path: ml/src
+      hash: md5
+      md5: 874cd166ac1baeeca5b7cb695952ea14.dir
+      size: 73550
+      nfiles: 51
+  evaluate:
+    cmd: python ml/scripts/evaluate.py --dataset data/processed/dataset.csv
+    deps:
+    - path: data/processed/dataset.csv
+      hash: md5
+      md5: dce49e923e37fcd5d3c7d1c3fa21d910
+      size: 14839
+    - path: ml/scripts/evaluate.py
+      hash: md5
+      md5: bf5c14c4c83ca4cb5321f8499ad90650
+      size: 2061
+    - path: ml/src
+      hash: md5
+      md5: 874cd166ac1baeeca5b7cb695952ea14.dir
+      size: 73550
+      nfiles: 51

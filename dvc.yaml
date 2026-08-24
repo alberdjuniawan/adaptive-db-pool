@@ -8,7 +8,6 @@ stages:
     deps:
       - ml/src/data/load.py
       - ml/src/data/validate.py
-      - experiments/scripts/collect.sh
     outs:
       - data/processed/dataset.csv
       - data/processed/validation_report.json
@@ -16,19 +15,16 @@ stages:
   train:
     cmd: python ml/scripts/train.py --dataset ${config.dataset}
     deps:
-      - data/processed/dataset.csv
+      - ${config.dataset}
       - ml/src
       - ml/scripts/train.py
-    outs:
-      - ml/models:
-          cache: true
+    # Model artifacts stay git-tracked (small + provenance-linked);
+    # DVC owns dataset outputs only.
 
   evaluate:
     cmd: python ml/scripts/evaluate.py --dataset ${config.dataset}
     deps:
-      - data/processed/dataset.csv
-      - ml/models
+      - ${config.dataset}
+      - ml/src
       - ml/scripts/evaluate.py
-    metrics:
-      - ml/models/test_report.json:
-          cache: false
+    # test_report.json stays git-tracked alongside the model artifacts.
