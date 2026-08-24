@@ -22,7 +22,7 @@ venv/
 .dvc/tmp/
 
 # Experiment local outputs; keep provenance metadata and k6 summaries only
-experiments/results/*
+experiments/results/**
 !experiments/results/**/
 !experiments/results/**/metadata.json
 !experiments/results/**/config.resolved.yaml
