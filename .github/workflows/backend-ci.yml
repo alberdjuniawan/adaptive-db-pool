@@ -1,0 +1,40 @@
+name: backend-ci
+
+on:
+  push:
+    paths: ["backend/**", ".github/workflows/backend-ci.yml"]
+  pull_request:
+    paths: ["backend/**", ".github/workflows/backend-ci.yml"]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: gofmt check
+        working-directory: backend
+        run: test -z "$(gofmt -l .)"
+
+      - name: go vet
+        working-directory: backend
+        run: go vet ./...
+
+      - name: go test
+        working-directory: backend
+        run: go test ./... -race
+
+      - name: build
+        working-directory: backend
+        run: go build ./...
+
+      - name: sqlc generate produces no diff
+        uses: sqlc-dev/setup-sqlc@v4
+        with:
+          sqlc-version: "1.27.0"
+      - run: sqlc generate -f backend/sqlc.yaml && git diff --exit-code backend/internal/infrastructure/database/sqlc

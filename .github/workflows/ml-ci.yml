@@ -1,0 +1,84 @@
+name: ml-ci
+
+on:
+  push:
+    paths:
+      - "ml/**"
+      - "controller/**"
+      - "experiments/scripts/**"
+      - ".github/workflows/ml-ci.yml"
+  pull_request:
+    paths:
+      - "ml/**"
+      - "controller/**"
+      - "experiments/scripts/**"
+      - ".github/workflows/ml-ci.yml"
+
+jobs:
+  ml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: install dependencies
+        run: |
+          pip install -r ml/requirements.txt -r controller/requirements.txt
+
+      - name: syntax check all python sources
+        run: |
+          python -m compileall -q ml/src ml/scripts controller/src
+
+      - name: training smoke test on synthetic data
+        env:
+          VALIDATE_MIN_ROWS: "50"
+        run: |
+          python - <<'EOF'
+          import numpy as np, pandas as pd
+          rng = np.random.default_rng(42)
+          rows = []
+          for block in range(3):
+              for limit in (4, 8, 16, 32):
+                  for _ in range(20):
+                      load = rng.uniform(0.2, 1.0)
+                      rows.append({
+                          "timestamp": int(block * 1e6 + limit * 1e3),
+                          "experiment_id": f"exp_{block}",
+                          "scenario": "synthetic",
+                          "workload_rate": 400.0,
+                          "admission_limit": float(limit),
+                          "admission_active": load * limit,
+                          "admission_waiting": max(0.0, (load - 0.8)) * limit,
+                          "request_rate": 100 * load,
+                          "rate_simple": 60 * load,
+                          "rate_medium": 25 * load,
+                          "rate_complex": 10 * load,
+                          "rate_aggregation": 5 * load,
+                          "simple_ratio": 0.6,
+                          "medium_ratio": 0.25,
+                          "complex_ratio": 0.1,
+                          "aggregation_ratio": 0.05,
+                          "pool_acquired": min(limit, 40.0),
+                          "pool_idle": 10.0,
+                          "pool_max": 50.0,
+                          "p95_latency": 0.01 + 4 / limit + load * 0.02,
+                          "p99_latency": 0.03 + 6 / limit + load * 0.05,
+                          "error_rate": max(0.0, load - 0.9) * 0.1,
+                          "wait_ratio": max(0.0, (load - 0.8)),
+                          "pool_utilization": min(limit, 40.0) / 50.0,
+                          "objective_j": 0.03 + 6 / limit + load * 0.05,
+                      })
+          pd.DataFrame(rows).to_csv("data/processed/dataset.csv", index=False)
+          EOF
+
+      - name: train candidates (smoke subset)
+        run: python ml/scripts/train.py --models linear_regression random_forest
+
+      - name: evaluate on test block
+        run: python ml/scripts/evaluate.py
+
+      - name: assert artifacts exist
+        run: test -f ml/models/training_summary.json && test -f ml/models/test_report.json
