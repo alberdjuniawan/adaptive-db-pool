@@ -1,0 +1,9 @@
+{
+  "selected": "xgboost",
+  "artifact": "/home/berdangry/Documents/adaptive-db-pool/ml/models/xgboost.joblib",
+  "gate_passed": true,
+  "gate": {
+    "max_limit_error": 12.0,
+    "max_p99_rmse": 5.0
+  }
+}

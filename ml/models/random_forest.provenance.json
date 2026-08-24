@@ -1,30 +1,58 @@
 {
   "model": "random_forest",
   "artifact": "/home/berdangry/Documents/adaptive-db-pool/ml/models/random_forest.joblib",
-  "trained_at": "2026-08-24T17:57:09.988931+00:00",
-  "git_commit": "50271bafc2dfd5cf876eb54e6e4d106b2f559eb0",
+  "feature_schema": "v2",
+  "dataset_version": "dce49e923e37fcd5d3c7d1c3fa21d910",
+  "git_commit": "ca7784f476eb78ef9bc632120f3268f55f358153",
   "features": [
     "request_rate",
-    "p95_latency",
-    "p99_latency",
-    "error_rate",
-    "admission_active",
-    "admission_waiting",
-    "admission_limit",
-    "utilization",
+    "simple_ratio",
+    "medium_ratio",
+    "complex_ratio",
+    "aggregation_ratio",
     "pool_acquired",
     "pool_idle",
     "pool_utilization"
   ],
-  "target": "objective_j",
-  "train_rows": 100,
-  "validation_rows": 21,
-  "test_rows": 22,
-  "metrics": {
-    "mae": 0.012680573883788111,
-    "rmse": 0.026051492427459164,
-    "mape": 5.451792187640084,
-    "latency_ms": 82.2768809957779
+  "outcomes": [
+    "p99_latency",
+    "wait_ratio",
+    "error_rate",
+    "pool_utilization"
+  ],
+  "train_rows": 109,
+  "validation_rows": 24,
+  "test_rows": 24,
+  "metrics_level1": {
+    "p99_latency": {
+      "mae": 0.64695193087661,
+      "rmse": 0.954452374912319,
+      "mape": 73.43185681965693
+    },
+    "wait_ratio": {
+      "mae": 20.42559895833333,
+      "rmse": 28.19932584813986,
+      "mape": NaN
+    },
+    "error_rate": {
+      "mae": 0.0,
+      "rmse": 0.0,
+      "mape": NaN
+    },
+    "pool_utilization": {
+      "mae": 0.10107500000000018,
+      "rmse": 0.179230184606484,
+      "mape": NaN
+    }
   },
-  "is_selected": true
+  "metrics_level2": {
+    "optimal_limit_mae": 12.0,
+    "optimal_limit_errors": [
+      24,
+      0
+    ],
+    "mean_regret": 0.00236,
+    "scope": "in_sample_regime_curves"
+  },
+  "is_selected": false
 }
