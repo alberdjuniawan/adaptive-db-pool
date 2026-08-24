@@ -11,7 +11,7 @@ DATABASE_URL ?= postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST
 
 MIGRATIONS_DIR := postgres/migrations
 
-.PHONY: dev up down logs migrate-up migrate-down migrate-status seed seed-benchmark sqlc test lint build benchmark experiment clean
+.PHONY: dev up down logs migrate-up migrate-down migrate-status seed seed-benchmark sqlc dataset test lint build benchmark experiment clean
 
 dev:
 	go -C backend run ./cmd/api
@@ -42,6 +42,9 @@ seed-benchmark:
 
 sqlc:
 	sqlc generate -f backend/sqlc.yaml
+
+dataset:
+	dvc repro prepare_data
 
 test:
 	go -C backend test ./...
