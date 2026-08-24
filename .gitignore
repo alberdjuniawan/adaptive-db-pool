@@ -37,6 +37,9 @@ data/processed/*
 # Deployed duplicate of the selected model artifact
 ml/models/predictor.joblib
 
+# Sweep runner generates configs at runtime
+experiments/configs/generated/
+
 # OS
 .DS_Store
 Thumbs.db
