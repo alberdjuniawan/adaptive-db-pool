@@ -1,0 +1,30 @@
+{
+  "experiment_id": "exp_adaptive_md",
+  "timestamp": "20260824T171856Z",
+  "git_commit": "50271bafc2dfd5cf876eb54e6e4d106b2f559eb0",
+  "model_version": "unknown",
+  "controller_version": "unknown",
+  "controller_strategy": "adaptive",
+  "admission_limit": 4,
+  "scenario": "high",
+  "warmup": "10s",
+  "measurement": "100s",
+  "base_url": "http://localhost:8080",
+  "prometheus_url": "http://localhost:9090",
+  "database_configuration": {
+    "max_connections": 50
+  },
+  "workload_configuration": {
+    "scenario": "high",
+    "arrival_rate": 400,
+    "products_max": 10000,
+    "orders_max": 50000
+  },
+  "backend_configuration_file": "config.resolved.yaml",
+  "hardware": {
+    "kernel": "Linux 6.19.11+kali-amd64",
+    "cpu_cores": 12,
+    "memory_total": "23.1 GiB",
+    "host": "berdangry-pc"
+  }
+}

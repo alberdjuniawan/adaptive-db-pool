@@ -1,0 +1,18 @@
+# Adaptive closed-loop under identical high load for comparison.
+experiment:
+  id: exp_adaptive_md
+workload:
+  scenario: high
+  arrival_rate: 400
+  products_max: 10000
+  orders_max: 50000
+database:
+  max_connections: 50
+admission:
+  strategy: adaptive
+  initial_limit: 4
+  min_limit: 4
+  max_limit: 32
+duration:
+  warmup: 10s
+  measurement: 100s

@@ -1,0 +1,15 @@
+experiment:
+  id: exp_smoke_test
+workload:
+  scenario: mixed
+  arrival_rate: 60
+  products_max: 10000
+  orders_max: 50000
+database:
+  max_connections: 50
+admission:
+  strategy: static
+  limit: 12
+duration:
+  warmup: 5s
+  measurement: 15s
