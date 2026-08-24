@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "history": [
+    {
+      "version": "v001",
+      "model": "xgboost",
+      "artifact": "ml/models/xgboost.joblib",
+      "feature_schema": "v2",
+      "git_commit": "ca7784f476eb78ef9bc632120f3268f55f358153",
+      "dataset_version": "dce49e923e37fcd5d3c7d1c3fa21d910",
+      "metrics_level2": {
+        "optimal_limit_mae": 0.0,
+        "optimal_limit_errors": [
+          0,
+          0
+        ],
+        "mean_regret": 18.681734330708665,
+        "scope": "in_sample_regime_curves"
+      },
+      "promoted_at": "2026-08-24T19:40:49.017693+00:00",
+      "status": "production",
+      "note": "first outcome-model promotion"
+    }
+  ],
+  "current": {
+    "version": "v001",
+    "model": "xgboost",
+    "artifact": "ml/models/xgboost.joblib",
+    "feature_schema": "v2",
+    "git_commit": "ca7784f476eb78ef9bc632120f3268f55f358153",
+    "dataset_version": "dce49e923e37fcd5d3c7d1c3fa21d910",
+    "metrics_level2": {
+      "optimal_limit_mae": 0.0,
+      "optimal_limit_errors": [
+        0,
+        0
+      ],
+      "mean_regret": 18.681734330708665,
+      "scope": "in_sample_regime_curves"
+    },
+    "promoted_at": "2026-08-24T19:40:49.017693+00:00",
+    "status": "production",
+    "note": "first outcome-model promotion"
+  }
+}
