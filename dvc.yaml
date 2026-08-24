@@ -1,0 +1,34 @@
+vars:
+  - config:
+      dataset: data/processed/dataset.csv
+
+stages:
+  prepare_data:
+    cmd: python ml/scripts/prepare_data.py
+    deps:
+      - ml/src/data/load.py
+      - ml/src/data/validate.py
+      - experiments/scripts/collect.sh
+    outs:
+      - data/processed/dataset.csv
+      - data/processed/validation_report.json
+
+  train:
+    cmd: python ml/scripts/train.py --dataset ${config.dataset}
+    deps:
+      - data/processed/dataset.csv
+      - ml/src
+      - ml/scripts/train.py
+    outs:
+      - ml/models:
+          cache: true
+
+  evaluate:
+    cmd: python ml/scripts/evaluate.py --dataset ${config.dataset}
+    deps:
+      - data/processed/dataset.csv
+      - ml/models
+      - ml/scripts/evaluate.py
+    metrics:
+      - ml/models/test_report.json:
+          cache: false
