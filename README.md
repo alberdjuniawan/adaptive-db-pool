@@ -218,6 +218,8 @@ cp ml/models/random_forest.joblib ml/models/predictor.joblib
 
 The split is temporal (never random) to prevent leakage; the MLP scaler is fitted on training data only. Every artifact ships with a provenance file (git commit, feature order, metrics).
 
+Datasets are versioned with DVC (`dvc.lock`); rebuild with `make dataset`, inspect changes via `git diff dvc.lock`. See [operations §4](docs/operations.md#4-model-training-flow).
+
 Data-flow details: [architecture § ML pipeline](docs/architecture.md).
 
 ## Experiments

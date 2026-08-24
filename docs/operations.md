@@ -169,6 +169,23 @@ The optimal limit is where P95 rises sharply without a meaningful throughput gai
 
 Prerequisite: baseline telemetry from completed experiments.
 
+### Dataset versioning (DVC)
+
+Processed datasets are versioned with DVC: `dvc.lock` records content hashes of
+`data/processed/dataset.csv` and `validation_report.json`, while the files
+themselves stay out of git. Model artifacts remain git-tracked (small and
+provenance-linked).
+
+```bash
+make dataset                 # rebuild the dataset via dvc repro prepare_data
+dvc status                   # verify pipeline state against dvc.lock
+git diff dvc.lock            # inspect what changed between versions
+```
+
+To restore a previous dataset version: `git checkout <ref> -- dvc.lock && dvc checkout`.
+To sync artifacts to a shared remote later:
+`dvc remote add -d storage <s3://bucket/path | gdrive://... | /path/to/dir>` then `dvc push`.
+
 ```bash
 pip install -r ml/requirements.txt
 
