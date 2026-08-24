@@ -1,0 +1,47 @@
+# Environment
+.env
+
+# Go
+backend/bin/
+backend/coverage.out
+*.test
+*.out
+
+# Python / ML
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# DVC artifacts are versioned via DVC; ignore local caches only
+.dvc/cache/
+.dvc/tmp/
+
+# Experiment local outputs; keep provenance metadata and k6 summaries only
+experiments/results/*
+!experiments/results/**/
+!experiments/results/**/metadata.json
+!experiments/results/**/config.resolved.yaml
+!experiments/results/**/k6_summary.json
+
+# Pipeline outputs are versioned via DVC (dvc.yaml); raw dumps stay local
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Deployed duplicate of the selected model artifact
+ml/models/predictor.joblib
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+*.swp
