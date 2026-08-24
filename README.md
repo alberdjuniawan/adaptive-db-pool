@@ -216,9 +216,22 @@ python ml/scripts/evaluate.py
 cp ml/models/random_forest.joblib ml/models/predictor.joblib
 ```
 
-The split is temporal (never random) to prevent leakage; the MLP scaler is fitted on training data only. Every artifact ships with a provenance file (git commit, feature order, metrics).
+The split is temporal or experiment-block based (never random) to prevent leakage; the MLP scaler is fitted on training data only. Every artifact ships with a provenance file (git commit, dataset DVC version, feature schema, metrics).
+
+Models predict per-candidate **system outcomes** (`p99_latency`, `wait_ratio`, `error_rate`, `pool_utilization`) from exogenous state plus a candidate limit; the objective J is computed afterwards and minimized over the candidate grid. Selection ranks models by control quality (recommended-limit accuracy), not RMSE alone.
 
 Datasets are versioned with DVC (`dvc.lock`); rebuild with `make dataset`, inspect changes via `git diff dvc.lock`. See [operations §4](docs/operations.md#4-model-training-flow).
+
+## Limit Sweeps
+
+Generate training data covering the J curve:
+
+```bash
+SCENARIO=high RATE=400 LIMITS="4 8 12 16 24 32 48 64" \
+  ./experiments/scripts/sweep.sh
+```
+
+Each limit point reconfigures the backend, runs warmup+measurement, and collects telemetry under one sweep-level experiment id.
 
 Data-flow details: [architecture § ML pipeline](docs/architecture.md).
 

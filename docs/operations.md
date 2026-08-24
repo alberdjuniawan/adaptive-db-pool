@@ -205,10 +205,15 @@ python ml/scripts/train.py
 python ml/scripts/evaluate.py
 # → ml/models/test_report.json (also exposed as a DVC metric)
 
-# 5) Deploy the best model to the online controller
-cp ml/models/random_forest.joblib ml/models/predictor.joblib
+# 5) Promote through the registry (rollback = promote the previous entry)
+python ml/scripts/promote.py --model xgboost --note "passes quality gate"
 docker compose --profile controller restart ml-controller
 ```
+
+Training reports two metric levels: prediction quality per outcome
+(MAE/RMSE) and control quality (`optimal_limit_mae`, `mean_regret` vs
+measured regime optima). `ML_GATE_MAX_LIMIT_ERROR` /
+`ML_GATE_MAX_P99_RMSE` gate promotion eligibility.
 
 Manual recommendations without the online controller:
 
