@@ -1,0 +1,16 @@
+# Phase 4 pressure sweep point: static limit 16 under high load.
+experiment:
+  id: exp_sweep_hi_L16
+workload:
+  scenario: high
+  arrival_rate: 1200
+  products_max: 10000
+  orders_max: 50000
+database:
+  max_connections: 50
+admission:
+  strategy: static
+  limit: 16
+duration:
+  warmup: 10s
+  measurement: 45s

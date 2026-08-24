@@ -1,0 +1,28 @@
+# Adaptive ML controller run. The external controller service applies
+# limits within the safety envelope configured here.
+experiment:
+  id: exp_adaptive_ml
+  description: "Closed-loop adaptive admission using ML predictor + optimizer + safety layer."
+
+workload:
+  scenario: mixed
+  arrival_rate: 120
+  products_max: 10000   # postgres/seeds/benchmark.sql volume
+  orders_max: 50000
+
+database:
+  max_connections: 50
+  min_connections: 2
+
+admission:
+  strategy: adaptive
+  initial_limit: 20
+  min_limit: 4
+  max_limit: 64
+  max_delta: 4
+  cooldown: 5s
+  fresh_timeout: 60s
+
+duration:
+  warmup: 60s
+  measurement: 300s

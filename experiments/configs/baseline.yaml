@@ -1,0 +1,23 @@
+# Baseline A: static admission limit. Reproducible from this file alone.
+# Parameters are never hard-coded in application source.
+experiment:
+  id: exp_baseline_static
+  description: "Static admission limit sweep for baseline dataset collection."
+
+workload:
+  scenario: mixed
+  arrival_rate: 120
+  products_max: 10000   # postgres/seeds/benchmark.sql volume
+  orders_max: 50000
+
+database:
+  max_connections: 50
+  min_connections: 2
+
+admission:
+  strategy: static
+  limit: 20
+
+duration:
+  warmup: 60s
+  measurement: 300s
