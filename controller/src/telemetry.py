@@ -25,6 +25,10 @@ class Telemetry:
     pool_acquired: float
     pool_idle: float
     pool_max: float
+    simple_rate: float = 0.0
+    medium_rate: float = 0.0
+    complex_rate: float = 0.0
+    aggregation_rate: float = 0.0
 
     @property
     def utilization(self) -> float:
@@ -90,6 +94,22 @@ class PrometheusTelemetrySource:
             pool_acquired=self._query("adaptive_db_pool_db_pool_acquired_connections") or 0.0,
             pool_idle=self._query("adaptive_db_pool_db_pool_idle_connections") or 0.0,
             pool_max=self._query("adaptive_db_pool_db_pool_max_connections"),
+            simple_rate=self._query(
+                'sum(rate(adaptive_db_pool_requests_total{route="/api/workload/simple/:id"}[30s]))'
+            )
+            or 0.0,
+            medium_rate=self._query(
+                'sum(rate(adaptive_db_pool_requests_total{route="/api/workload/medium/:id"}[30s]))'
+            )
+            or 0.0,
+            complex_rate=self._query(
+                'sum(rate(adaptive_db_pool_requests_total{route="/api/workload/complex/:id"}[30s]))'
+            )
+            or 0.0,
+            aggregation_rate=self._query(
+                'sum(rate(adaptive_db_pool_requests_total{route="/api/workload/aggregation"}[30s]))'
+            )
+            or 0.0,
         )
 
         if telemetry.admission_limit is None or telemetry.pool_max is None:

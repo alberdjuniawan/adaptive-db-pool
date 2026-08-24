@@ -68,40 +68,73 @@ class HeuristicPredictor:
 
 
 class JoblibModelPredictor:
-    """Wraps the supervised regression model trained by ml/pipeline.
+    """Outcome-model predictor (feature schema v2).
 
-    Expected artifact: a sklearn-compatible estimator over the canonical
-    FEATURES vector defined in ml/src/__init__.py. Counterfactual
-    candidates are evaluated by substituting `admission_limit` and
-    recomputing `utilization` — exactly what ml/src/optimization/
-    optimizer.py does offline.
+    The artifact holds one estimator per system outcome. Inputs are
+    exogenous state plus the candidate limit; J is computed from the
+    predicted outcomes with the same weights as training and offline
+    evaluation — never predicted directly.
     """
 
-    def __init__(self, model_path: str) -> None:
+    def __init__(self, model_path: str, weights: tuple[float, float, float, float]) -> None:
         import joblib  # imported lazily: optional dependency at runtime
 
         if not os.path.exists(model_path):
             raise FileNotFoundError(model_path)
-        self._model = joblib.load(model_path)
-        logger.info("loaded ML predictor from %s", model_path)
+        artifact = joblib.load(model_path)
+        if not isinstance(artifact, dict) or "estimators" not in artifact:
+            raise ValueError("unsupported artifact schema; retrain with feature schema v2")
+        self._estimators = artifact["estimators"]
+        self._features = list(artifact["exogenous_features"])
+        self._weights = dict(
+            zip(("w_latency", "w_error", "w_wait", "w_resource"), weights)
+        )
+        logger.info(
+            "loaded ML outcome predictor from %s (schema %s, outcomes %s)",
+            model_path,
+            artifact.get("schema"),
+            sorted(self._estimators),
+        )
+
+    def _exogenous(self, telemetry: Telemetry) -> dict:
+        total = (
+            telemetry.simple_rate
+            + telemetry.medium_rate
+            + telemetry.complex_rate
+            + telemetry.aggregation_rate
+        )
+
+        def ratio(rate: float) -> float:
+            return rate / total if total else 0.0
+
+        return {
+            "request_rate": telemetry.request_rate,
+            "simple_ratio": ratio(telemetry.simple_rate),
+            "medium_ratio": ratio(telemetry.medium_rate),
+            "complex_ratio": ratio(telemetry.complex_rate),
+            "aggregation_ratio": ratio(telemetry.aggregation_rate),
+            "pool_acquired": telemetry.pool_acquired,
+            "pool_idle": telemetry.pool_idle,
+            "pool_utilization": telemetry.pool_utilization,
+        }
 
     def predict(self, telemetry: Telemetry, candidate_limit: int) -> float:
-        # Canonical order: ml/src/__init__.py::FEATURES.
-        features = [
-            telemetry.request_rate,
-            telemetry.p95_latency,
-            telemetry.p99_latency,
-            telemetry.error_rate,
-            telemetry.admission_active,
-            telemetry.admission_waiting,
-            float(candidate_limit),  # admission_limit -> counterfactual
-            telemetry.admission_active / max(candidate_limit, 1),  # utilization
-            telemetry.pool_acquired,
-            telemetry.pool_idle,
-            telemetry.pool_utilization,
-        ]
-        prediction = self._model.predict([features])
-        return float(prediction[0])
+        import pandas as pd
+
+        row = self._exogenous(telemetry)
+        row["admission_limit"] = float(candidate_limit)
+        frame = pd.DataFrame([row])[self._features + ["admission_limit"]]
+
+        outcomes = {
+            name: float(estimator.predict(frame)[0])
+            for name, estimator in self._estimators.items()
+        }
+        return float(
+            self._weights["w_latency"] * outcomes["p99_latency"]
+            + self._weights["w_error"] * outcomes["error_rate"]
+            + self._weights["w_wait"] * outcomes["wait_ratio"]
+            + self._weights["w_resource"] * outcomes["pool_utilization"]
+        )
 
 
 def load_predictor(
@@ -111,7 +144,7 @@ def load_predictor(
     """Returns (predictor, kind). Falls back to the analytic heuristic."""
     try:
         if model_path and os.path.exists(model_path):
-            return JoblibModelPredictor(model_path), "ml"
+            return JoblibModelPredictor(model_path, weights), "ml"
     except Exception as exc:  # noqa: BLE001 - fail safe to heuristic
         logger.warning("ML model unavailable (%s); using heuristic", exc)
     heuristic = HeuristicPredictor(*weights)
