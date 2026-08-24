@@ -1,0 +1,30 @@
+{
+  "model": "linear_regression",
+  "artifact": "/home/berdangry/Documents/adaptive-db-pool/ml/models/linear_regression.joblib",
+  "trained_at": "2026-08-24T17:57:09.988931+00:00",
+  "git_commit": "50271bafc2dfd5cf876eb54e6e4d106b2f559eb0",
+  "features": [
+    "request_rate",
+    "p95_latency",
+    "p99_latency",
+    "error_rate",
+    "admission_active",
+    "admission_waiting",
+    "admission_limit",
+    "utilization",
+    "pool_acquired",
+    "pool_idle",
+    "pool_utilization"
+  ],
+  "target": "objective_j",
+  "train_rows": 100,
+  "validation_rows": 21,
+  "test_rows": 22,
+  "metrics": {
+    "mae": 28.241825483591324,
+    "rmse": 45.7203601857094,
+    "mape": 360663.00909724296,
+    "latency_ms": 0.6790295010432601
+  },
+  "is_selected": false
+}
