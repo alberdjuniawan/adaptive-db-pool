@@ -1,37 +1,57 @@
 """Offline optimizer: grid search over candidate limits using a trained
-model. This mirrors controller/src/optimizer.py but operates offline on
-recorded telemetry for research analysis."""
+outcome model. Mirrors controller/src/predictor.py so training-time
+evaluation and online inference compute J identically."""
 
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
 
+from ..features.engineering import candidate_frame
+
+WEIGHT_KEYS = ("w_latency", "w_error", "w_wait", "w_resource")
+
+
+def objective_from_outcomes(outcomes: pd.DataFrame, weights: dict) -> np.ndarray:
+    """J = w_lat*p99 + w_err*error + w_wait*wait_ratio + w_res*pool_util."""
+    return (
+        weights["w_latency"] * outcomes["p99_latency"]
+        + weights["w_error"] * outcomes["error_rate"]
+        + weights["w_wait"] * outcomes["wait_ratio"]
+        + weights["w_resource"] * outcomes["pool_utilization"]
+    ).to_numpy()
+
 
 def recommend_limit(
-    model,
-    window_features: dict,
-    min_limit: int = 1,
-    max_limit: int = 128,
-    step: int = 2,
-) -> tuple[int, float]:
-    """Evaluates every candidate limit for one observation window.
+    artifact: dict,
+    exogenous_row: dict,
+    candidates,
+    weights: dict | None = None,
+) -> dict:
+    """Predict outcomes for every candidate, compute J, return argmin.
 
-    `window_features` maps the 11 base feature names to values; the
-    candidate limit replaces `admission_limit` and recomputes derived
-    utilization before prediction.
+    Returns {"best_limit", "best_cost", "curve": {c: J}, "outcomes": DataFrame}.
     """
-    candidates = np.arange(min_limit, max_limit + 1, step)
+    weights = weights or {
+        "w_latency": 1.0,
+        "w_error": 3.0,
+        "w_wait": 1.5,
+        "w_resource": 0.05,
+    }
+    candidate_list = [float(c) for c in candidates]
+    frame = candidate_frame(exogenous_row, candidate_list)
 
-    rows = []
-    active = float(window_features["admission_active"])
-    for candidate in candidates:
-        row = dict(window_features)
-        row["admission_limit"] = float(candidate)
-        row["utilization"] = active / max(candidate, 1)
-        rows.append(row)
+    columns = {}
+    for outcome, estimator in artifact["estimators"].items():
+        columns[outcome] = estimator.predict(frame)
+    outcomes = pd.DataFrame(columns, index=frame.index)
+    costs = objective_from_outcomes(outcomes, weights)
 
-    matrix = pd.DataFrame(rows)[list(window_features.keys())]
-    costs = model.predict(matrix)
     best_index = int(np.argmin(costs))
-    return int(candidates[best_index]), float(costs[best_index])
+    curve = {int(c): float(j) for c, j in zip(candidate_list, costs)}
+    return {
+        "best_limit": int(candidate_list[best_index]),
+        "best_cost": float(costs[best_index]),
+        "curve": curve,
+        "outcomes": outcomes.assign(objective_j=costs),
+    }
