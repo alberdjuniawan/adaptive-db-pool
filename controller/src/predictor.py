@@ -45,6 +45,12 @@ class HeuristicPredictor:
         self._w_error = weight_error
         self._w_wait = weight_wait
         self._w_resource = weight_resource
+        self.info_labels = {
+            "kind": "heuristic",
+            "model": "analytic",
+            "dataset_version": "none",
+            "git_commit": "none",
+        }
 
     def predict(self, telemetry: Telemetry, candidate_limit: int) -> float:
         limit = max(candidate_limit, 1)
@@ -89,6 +95,12 @@ class JoblibModelPredictor:
         self._weights = dict(
             zip(("w_latency", "w_error", "w_wait", "w_resource"), weights)
         )
+        self.info_labels = {
+            "kind": "ml",
+            "model": str(artifact.get("model", "unknown")),
+            "dataset_version": str(artifact.get("dataset_version") or "unknown"),
+            "git_commit": str(artifact.get("git_commit") or "unknown"),
+        }
         logger.info(
             "loaded ML outcome predictor from %s (schema %s, outcomes %s)",
             model_path,

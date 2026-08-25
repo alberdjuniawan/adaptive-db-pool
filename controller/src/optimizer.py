@@ -4,8 +4,10 @@ subject to the safety constraints."""
 from __future__ import annotations
 
 import logging
+import time
 from dataclasses import dataclass
 
+from .metrics import PREDICTION_LATENCY, PREDICTIONS_TOTAL, RECOMMENDED_LIMIT
 from .predictor import Predictor
 from .telemetry import Telemetry
 
@@ -56,16 +58,21 @@ class GridOptimizer:
             candidates.append(current_limit)
 
         evaluated: dict[int, float] = {}
+        started = time.perf_counter()
         for candidate in candidates:
             try:
                 evaluated[candidate] = predictor.predict(telemetry, candidate)
             except Exception as exc:  # noqa: BLE001 - prediction must never crash the loop
                 logger.warning("prediction failed for %d: %s", candidate, exc)
 
+        PREDICTION_LATENCY.observe(time.perf_counter() - started)
+        PREDICTIONS_TOTAL.inc(len(evaluated))
+
         if not evaluated:
             return OptimizationResult(best_limit=current_limit, best_cost=float("inf"), evaluated={})
 
         best_limit = min(evaluated, key=evaluated.__getitem__)
+        RECOMMENDED_LIMIT.set(best_limit)
         return OptimizationResult(
             best_limit=best_limit,
             best_cost=evaluated[best_limit],

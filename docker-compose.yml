@@ -89,6 +89,8 @@ services:
       MODEL_PATH: /models/predictor.joblib
     volumes:
       - ./ml/models:/models:ro
+    ports:
+      - "9877:9877"
     depends_on:
       - backend
       - prometheus

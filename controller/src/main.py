@@ -17,6 +17,11 @@ import time
 
 from .actuator import BackendActuator, BackendActuatorError
 from .config import ControllerConfig
+from .metrics import (
+    HELD_LIMIT,
+    MODEL_INFO,
+    start_metrics_server,
+)
 from .optimizer import GridOptimizer
 from .predictor import load_predictor
 from .safety import SafetyLayer
@@ -32,6 +37,7 @@ logger = logging.getLogger("controller")
 
 def run() -> int:
     config = ControllerConfig.from_env()
+    start_metrics_server()
 
     predictor, predictor_kind = load_predictor(
         config.model_path,
@@ -42,6 +48,7 @@ def run() -> int:
             config.weight_resource,
         ),
     )
+    MODEL_INFO.labels(**getattr(predictor, "info_labels", {"kind": predictor_kind, "model": "unknown", "dataset_version": "unknown", "git_commit": "unknown"})).set(1)
     logger.info('{"event": "startup", "predictor": "%s"}', predictor_kind)
 
     telemetry_source = PrometheusTelemetrySource(config.prometheus_url)
@@ -71,6 +78,7 @@ def run() -> int:
 
             # The backend is authoritative about the live limit.
             current_limit = int(telemetry.admission_limit)
+            HELD_LIMIT.set(current_limit)
 
             result = optimizer.optimize(
                 predictor=predictor,
