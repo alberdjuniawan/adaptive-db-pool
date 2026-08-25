@@ -310,6 +310,8 @@ Ensure `metadata.json` records the same git commit, identical benchmark seed, an
 **sqlc errors after editing queries**
 Run `make sqlc`; on type errors make sure aggregate columns use explicit casts (`::float8`) so generated Go code stays deterministic.
 
+The sqlc version is pinned in `.github/workflows/backend-ci.yml` and must match your local toolchain — a mismatch reformats generated files and fails the no-diff check.
+
 ---
 
 ## 7. Pre-Commit Quality Checklist
