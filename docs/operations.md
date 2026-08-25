@@ -215,6 +215,19 @@ Training reports two metric levels: prediction quality per outcome
 measured regime optima). `ML_GATE_MAX_LIMIT_ERROR` /
 `ML_GATE_MAX_P99_RMSE` gate promotion eligibility.
 
+### MLOps extras
+
+| Capability | Command |
+| --- | --- |
+| Drift detection (KS + PSI vs live telemetry) | `python ml/scripts/detect_drift.py --window 30m` (exit 2 = retrain advised) |
+| Ablation study on the selected model | `python ml/scripts/train.py --ablation` → `ml/models/ablation_report.json` |
+| Repeated sweeps for statistical weight | `REPEATS=3 ./experiments/scripts/repeat_sweep.sh` |
+| Online model monitoring | `localhost:9877/metrics` (`adaptive_ml_model_info`, `adaptive_ml_prediction_latency_seconds`, `adaptive_ml_recommended_limit`) |
+
+The controller exposes its loaded model identity (kind, dataset DVC
+version, git commit) through `adaptive_ml_model_info`; Prometheus
+scrapes it under job `adaptive-db-pool-controller`.
+
 Manual recommendations without the online controller:
 
 ```bash
