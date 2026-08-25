@@ -2,8 +2,8 @@
   "model": "xgboost",
   "artifact": "/home/berdangry/Documents/adaptive-db-pool/ml/models/xgboost.joblib",
   "feature_schema": "v2",
-  "dataset_version": "dce49e923e37fcd5d3c7d1c3fa21d910",
-  "git_commit": "ca7784f476eb78ef9bc632120f3268f55f358153",
+  "dataset_version": "bd0d0356c49e0e2d4d4f922689a77562",
+  "git_commit": "246061eb0ed55252ae568581c1ac332b1b534ffb",
   "features": [
     "request_rate",
     "simple_ratio",
