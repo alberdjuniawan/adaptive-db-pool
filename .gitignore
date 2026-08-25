@@ -37,6 +37,12 @@ data/processed/*
 # Deployed duplicate of the selected model artifact
 ml/models/predictor.joblib
 
+# Sweep runner generates configs at runtime
+experiments/configs/generated/
+
+# Transient MLOps reports (regenerated on demand)
+data/processed/drift_report.json
+
 # OS
 .DS_Store
 Thumbs.db

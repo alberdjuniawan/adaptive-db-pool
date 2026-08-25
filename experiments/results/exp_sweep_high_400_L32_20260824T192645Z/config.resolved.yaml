@@ -1,0 +1,15 @@
+experiment:
+  id: exp_sweep_high_400_L32
+workload:
+  scenario: high
+  arrival_rate: 400
+  products_max: 10000
+  orders_max: 50000
+database:
+  max_connections: 50
+admission:
+  strategy: static
+  limit: 32
+duration:
+  warmup: 8s
+  measurement: 25s

@@ -205,10 +205,28 @@ python ml/scripts/train.py
 python ml/scripts/evaluate.py
 # → ml/models/test_report.json (also exposed as a DVC metric)
 
-# 5) Deploy the best model to the online controller
-cp ml/models/random_forest.joblib ml/models/predictor.joblib
+# 5) Promote through the registry (rollback = promote the previous entry)
+python ml/scripts/promote.py --model xgboost --note "passes quality gate"
 docker compose --profile controller restart ml-controller
 ```
+
+Training reports two metric levels: prediction quality per outcome
+(MAE/RMSE) and control quality (`optimal_limit_mae`, `mean_regret` vs
+measured regime optima). `ML_GATE_MAX_LIMIT_ERROR` /
+`ML_GATE_MAX_P99_RMSE` gate promotion eligibility.
+
+### MLOps extras
+
+| Capability | Command |
+| --- | --- |
+| Drift detection (KS + PSI vs live telemetry) | `python ml/scripts/detect_drift.py --window 30m` (exit 2 = retrain advised) |
+| Ablation study on the selected model | `python ml/scripts/train.py --ablation` → `ml/models/ablation_report.json` |
+| Repeated sweeps for statistical weight | `REPEATS=3 ./experiments/scripts/repeat_sweep.sh` |
+| Online model monitoring | `localhost:9877/metrics` (`adaptive_ml_model_info`, `adaptive_ml_prediction_latency_seconds`, `adaptive_ml_recommended_limit`) |
+
+The controller exposes its loaded model identity (kind, dataset DVC
+version, git commit) through `adaptive_ml_model_info`; Prometheus
+scrapes it under job `adaptive-db-pool-controller`.
 
 Manual recommendations without the online controller:
 
@@ -304,6 +322,8 @@ Ensure `metadata.json` records the same git commit, identical benchmark seed, an
 
 **sqlc errors after editing queries**
 Run `make sqlc`; on type errors make sure aggregate columns use explicit casts (`::float8`) so generated Go code stays deterministic.
+
+The sqlc version is pinned in `.github/workflows/backend-ci.yml` and must match your local toolchain — a mismatch reformats generated files and fails the no-diff check.
 
 ---
 

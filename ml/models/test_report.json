@@ -1,34 +1,130 @@
 [
   {
     "model": "linear_regression",
-    "test_rows": 22,
-    "mae": 37.72825218062933,
-    "rmse": 44.748611053996896,
-    "mape": 275387.39247918024,
-    "latency_ms": 0.6458360003307462
+    "schema": "v2",
+    "git_commit": "ca7784f476eb78ef9bc632120f3268f55f358153",
+    "dataset_version": "dce49e923e37fcd5d3c7d1c3fa21d910",
+    "test_rows": 24,
+    "level1": {
+      "p99_latency": {
+        "mae": 1.4946368842515287,
+        "rmse": 1.8024247454217257
+      },
+      "wait_ratio": {
+        "mae": 30.91490077622147,
+        "rmse": 38.09489062321399
+      },
+      "error_rate": {
+        "mae": 0.0,
+        "rmse": 0.0
+      },
+      "pool_utilization": {
+        "mae": 2.577509964722206e-16,
+        "rmse": 3.2045700354431964e-16
+      }
+    },
+    "level2": {
+      "optimal_limit_mae": 16.0,
+      "mean_regret": 4.074130319851966,
+      "per_block_limit_errors": [
+        16
+      ]
+    }
   },
   {
     "model": "mlp",
-    "test_rows": 22,
-    "mae": 3.879848190901761,
-    "rmse": 7.2934868477255534,
-    "mape": 6394.523606961153,
-    "latency_ms": 0.6637309998041019
+    "schema": "v2",
+    "git_commit": "ca7784f476eb78ef9bc632120f3268f55f358153",
+    "dataset_version": "dce49e923e37fcd5d3c7d1c3fa21d910",
+    "test_rows": 24,
+    "level1": {
+      "p99_latency": {
+        "mae": 1.320150860656778,
+        "rmse": 1.5429808951748425
+      },
+      "wait_ratio": {
+        "mae": 17.84821766849347,
+        "rmse": 25.084035184392068
+      },
+      "error_rate": {
+        "mae": 0.3564399246979524,
+        "rmse": 0.5292904909272289
+      },
+      "pool_utilization": {
+        "mae": 0.28260157425889565,
+        "rmse": 0.4001303650981328
+      }
+    },
+    "level2": {
+      "optimal_limit_mae": 16.0,
+      "mean_regret": 4.074130319851966,
+      "per_block_limit_errors": [
+        16
+      ]
+    }
   },
   {
     "model": "random_forest",
-    "test_rows": 22,
-    "mae": 0.9244776632197904,
-    "rmse": 1.8962454407150804,
-    "mape": 10.068133950616774,
-    "latency_ms": 82.52949149755295
+    "schema": "v2",
+    "git_commit": "ca7784f476eb78ef9bc632120f3268f55f358153",
+    "dataset_version": "dce49e923e37fcd5d3c7d1c3fa21d910",
+    "test_rows": 24,
+    "level1": {
+      "p99_latency": {
+        "mae": 0.8957754127643097,
+        "rmse": 1.21032858574046
+      },
+      "wait_ratio": {
+        "mae": 23.03745659722222,
+        "rmse": 28.865636655987394
+      },
+      "error_rate": {
+        "mae": 0.0,
+        "rmse": 0.0
+      },
+      "pool_utilization": {
+        "mae": 0.08652222222222293,
+        "rmse": 0.14747448115722564
+      }
+    },
+    "level2": {
+      "optimal_limit_mae": 16.0,
+      "mean_regret": 4.105818747121138,
+      "per_block_limit_errors": [
+        16
+      ]
+    }
   },
   {
     "model": "xgboost",
-    "test_rows": 22,
-    "mae": 1.355101776988056,
-    "rmse": 2.522748932047336,
-    "mape": 163.67637539786003,
-    "latency_ms": 8.602097004768439
+    "schema": "v2",
+    "git_commit": "ca7784f476eb78ef9bc632120f3268f55f358153",
+    "dataset_version": "dce49e923e37fcd5d3c7d1c3fa21d910",
+    "test_rows": 24,
+    "level1": {
+      "p99_latency": {
+        "mae": 1.1615906233888422,
+        "rmse": 1.5775979346653828
+      },
+      "wait_ratio": {
+        "mae": 13.998945973813534,
+        "rmse": 21.574172597948863
+      },
+      "error_rate": {
+        "mae": 0.0,
+        "rmse": 0.0
+      },
+      "pool_utilization": {
+        "mae": 0.08080804247736524,
+        "rmse": 0.14720955767573485
+      }
+    },
+    "level2": {
+      "optimal_limit_mae": 0.0,
+      "mean_regret": 4.084861584181047,
+      "per_block_limit_errors": [
+        0
+      ]
+    }
   }
 ]
