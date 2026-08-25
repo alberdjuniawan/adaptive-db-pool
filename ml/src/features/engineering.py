@@ -17,12 +17,20 @@ from .. import EXOGENOUS_FEATURES
 MODEL_INPUT = EXOGENOUS_FEATURES + ["admission_limit"]
 
 
-def build_features(dataset: pd.DataFrame) -> pd.DataFrame:
-    """Model input matrix using each row's own admission limit."""
-    missing = [column for column in MODEL_INPUT if column not in dataset.columns]
+def build_features(
+    dataset: pd.DataFrame,
+    exogenous: list[str] | None = None,
+) -> pd.DataFrame:
+    """Model input matrix using each row's own admission limit.
+
+    `exogenous` restricts the state columns (ablation studies).
+    """
+    selected = list(exogenous) if exogenous is not None else EXOGENOUS_FEATURES
+    model_input = selected + ["admission_limit"]
+    missing = [column for column in model_input if column not in dataset.columns]
     if missing:
         raise KeyError(f"missing feature columns: {missing}")
-    return dataset[MODEL_INPUT].copy()
+    return dataset[model_input].copy()
 
 
 def candidate_frame(exogenous_row: dict, candidates) -> pd.DataFrame:

@@ -59,7 +59,7 @@ def control_quality(
     for _, block in _regime_groups(dataset):
         if block["admission_limit"].nunique() < 3:
             continue
-        X_block = build_features(block)
+        X_block = build_features(block, report.get("_exogenous"))
         predicted = pd.DataFrame(
             {o: est.predict(X_block) for o, est in report["estimators"].items()},
             index=block.index,
@@ -94,17 +94,19 @@ def evaluate_models(
     train: pd.DataFrame,
     validation: pd.DataFrame,
     dataset: pd.DataFrame,
+    exogenous: list[str] | None = None,
 ) -> list[dict]:
     """Fit one estimator per (model, outcome) on training data only.
 
     Level-2 control quality is evaluated over full regime curves from
-    the complete dataset .
+    the complete dataset . `exogenous` restricts input state columns
+    for ablation runs.
     """
     from src import OUTCOMES
 
     catalog = models_catalog or MODEL_CATALOG
-    X_train = build_features(train)
-    X_validation = build_features(validation)
+    X_train = build_features(train, exogenous)
+    X_validation = build_features(validation, exogenous)
 
     reports = []
     for name in catalog:
@@ -149,6 +151,7 @@ def evaluate_models(
             "validation_predictions": predictions,
             "estimators": estimators,
             "feature_importances": importances or None,
+            "_exogenous": exogenous,
         }
         report["control_quality"] = control_quality(report, dataset)
         reports.append(report)

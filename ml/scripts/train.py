@@ -66,6 +66,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", type=Path, default=REPO_ROOT / "data" / "processed" / "dataset.csv")
     parser.add_argument("--models", nargs="*", default=None)
+    parser.add_argument(
+        "--ablation",
+        action="store_true",
+        help="retrain the selected model without each feature group",
+    )
     args = parser.parse_args()
 
     if not args.dataset.exists():
@@ -175,6 +180,29 @@ def main() -> int:
     }
     with (MODELS_DIR / "training_summary.json").open("w") as handle:
         json.dump(summary, handle, indent=2)
+
+    if args.ablation:
+        groups = {
+            "without_workload_mix": [
+                "simple_ratio",
+                "medium_ratio",
+                "complex_ratio",
+                "aggregation_ratio",
+            ],
+            "without_pool_state": ["pool_acquired", "pool_idle", "pool_utilization"],
+            "without_intensity": ["request_rate"],
+        }
+        ablation = {"full": best_report["control_quality"]["optimal_limit_mae"]}
+        for group_name, dropped in groups.items():
+            exog_subset = [f for f in EXOGENOUS_FEATURES if f not in dropped]
+            variant = evaluate_models(
+                [best["model"]], train, validation, dataset, exogenous=exog_subset
+            )
+            ablation[group_name] = variant[0]["control_quality"]["optimal_limit_mae"]
+
+        with (MODELS_DIR / "ablation_report.json").open("w") as handle:
+            json.dump(ablation, handle, indent=2)
+        print(f"ablation (optimal_limit_mae): {ablation}")
 
     return 0 if passed else 2
 
